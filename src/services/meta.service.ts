@@ -7,6 +7,24 @@ export const metaService = {
     message: string
   ) {
     try {
+      // Test mode
+      if (env.nodeEnv === "development") {
+        console.log("META TEST MODE");
+        console.log("To:", to);
+        console.log("Message:", message);
+
+        return {
+          success: true,
+          testMode: true,
+          message: "WhatsApp message simulated successfully",
+          data: {
+            to,
+            message,
+          },
+        };
+      }
+
+      // Real Meta configuration
       if (!env.metaPhoneNumberId) {
         throw new Error("META_PHONE_NUMBER_ID is not configured");
       }
@@ -38,7 +56,11 @@ export const metaService = {
         }
       );
 
-      return response.data;
+      return {
+        success: true,
+        testMode: false,
+        data: response.data,
+      };
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.error(
@@ -46,10 +68,7 @@ export const metaService = {
           error.response?.data || error.message
         );
       } else {
-        console.error(
-          "Meta service error:",
-          error
-        );
+        console.error("Meta service error:", error);
       }
 
       throw new Error("Failed to send WhatsApp message");
